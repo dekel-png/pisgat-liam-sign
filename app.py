@@ -58,15 +58,56 @@ _submit_counts = {}
 _lock = threading.Lock()
 
 
+def _fetch_remote_package(token):
+    """Dashboard-minted packs (manager self-service) live on the dashboard's
+    persistent disk; fetch once and cache locally for this instance."""
+    import base64
+    import tempfile
+
+    import requests
+
+    url = os.environ.get("DASH_URL", "").rstrip("/")
+    key = os.environ.get("DASH_OPS_KEY", "")
+    if not url or not key:
+        return None
+    try:
+        r = requests.get(f"{url}/ops/sign-package/{token}",
+                         headers={"X-Ops-Key": key}, timeout=60)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data.get("ok"):
+            return None
+    except Exception:
+        return None
+    cache = os.path.join(tempfile.gettempdir(), "plsign-remote", token)
+    os.makedirs(cache, exist_ok=True)
+    with open(os.path.join(cache, "package.json"), "w", encoding="utf-8") as f:
+        json.dump(data["package"], f, ensure_ascii=False)
+    for fname, b64 in data.get("files", {}).items():
+        if "/" in fname or "\\" in fname or ".." in fname:
+            continue
+        with open(os.path.join(cache, fname), "wb") as f:
+            f.write(base64.b64decode(b64))
+    return cache
+
+
 def load_package(token):
     if not token or "/" in token or "\\" in token or ".." in token:
         return None
-    path = os.path.join(PACKAGES_DIR, token, "package.json")
-    if not os.path.exists(path):
-        return None
-    with open(path, encoding="utf-8") as f:
+    pack_dir = os.path.join(PACKAGES_DIR, token)
+    if not os.path.exists(os.path.join(pack_dir, "package.json")):
+        import tempfile
+        cached = os.path.join(tempfile.gettempdir(), "plsign-remote", token)
+        if os.path.exists(os.path.join(cached, "package.json")):
+            pack_dir = cached
+        else:
+            pack_dir = _fetch_remote_package(token)
+            if not pack_dir:
+                return None
+    with open(os.path.join(pack_dir, "package.json"), encoding="utf-8") as f:
         pkg = json.load(f)
-    pkg["_dir"] = os.path.join(PACKAGES_DIR, token)
+    pkg["_dir"] = pack_dir
     return pkg
 
 
