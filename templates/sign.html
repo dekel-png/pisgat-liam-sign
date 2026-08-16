@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>חתימה דיגיטלית — פסגת ליאם</title>
+<style>
+@font-face{font-family:'Alef';src:url('/static/fonts/Alef-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Alef';src:url('/static/fonts/Alef-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+:root{--green:#2D5016;--green-d:#152808;--gold:#C9A96E;--gold-d:#a8853f;--ink:#161a12;--muted:#5c6356;--cream:#f6f4ee;--line:rgba(45,80,22,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Alef','Segoe UI',Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.55;-webkit-tap-highlight-color:transparent}
+.top{background:linear-gradient(135deg,var(--green-d),var(--green));color:#fff;padding:22px 18px 26px;text-align:center}
+.top img{height:52px;background:#fff;border-radius:12px;padding:6px 12px;margin-bottom:10px}
+.top h1{font-size:1.25rem;font-weight:700}
+.top p{font-size:.9rem;opacity:.85;margin-top:4px}
+.wrap{max-width:560px;margin:-14px auto 40px;padding:0 14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(21,40,8,.06)}
+.card h2{font-size:1.02rem;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.step{background:var(--gold);color:var(--green-d);width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex:0 0 24px}
+.doclist{display:flex;flex-direction:column;gap:8px}
+.doc{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--cream)}
+.doc b{font-size:.92rem;font-weight:700}
+.doc a{flex:0 0 auto;text-decoration:none;background:#fff;border:1.5px solid var(--green);color:var(--green);border-radius:10px;padding:7px 14px;font-size:.86rem;font-weight:700}
+label{display:block;font-size:.88rem;font-weight:700;color:var(--green);margin:12px 0 4px}
+input,select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:1rem;font-family:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:none;border-color:var(--gold-d)}
+.sigbox{position:relative;border:1.5px dashed var(--gold-d);border-radius:12px;background:#fff;overflow:hidden}
+canvas{display:block;width:100%;height:190px;touch-action:none}
+.sighint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#b9b39f;font-size:1rem;pointer-events:none}
+.sigline{position:absolute;left:10%;right:10%;bottom:34px;border-bottom:1.5px solid #d8d2c0;pointer-events:none}
+.clear{margin-top:8px;background:none;border:none;color:var(--muted);font-size:.85rem;text-decoration:underline;cursor:pointer;font-family:inherit}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--ink);margin-top:6px}
+.consent input{width:20px;height:20px;flex:0 0 20px;margin-top:2px}
+.btn{width:100%;margin-top:16px;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:var(--green-d);border:none;border-radius:14px;padding:15px;font-size:1.08rem;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 14px rgba(168,133,63,.35)}
+.btn:disabled{opacity:.55;box-shadow:none}
+.err{display:none;background:#fdeaea;border:1px solid #e5b8b8;color:#8a2020;border-radius:10px;padding:10px 12px;font-size:.88rem;margin-top:12px}
+#done{display:none}
+.ok-icon{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:4px auto 12px}
+#done h2{justify-content:center}
+#done p{text-align:center;font-size:.92rem;color:var(--muted)}
+.dl{display:block;text-align:center;margin-top:10px;background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:.9rem;color:var(--green);font-weight:700;text-decoration:none}
+.foot{text-align:center;font-size:.78rem;color:var(--muted);margin-top:18px}
+.spin{display:none;text-align:center;color:var(--muted);font-size:.9rem;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="top">
+  <img src="/static/logo.png" alt="פסגת ליאם">
+  <h1>חתימה דיגיטלית על מסמכי התקשרות</h1>
+  <p>{{ pkg.client }}</p>
+</div>
+<div class="wrap">
+
+<div id="flow">
+  <div class="card">
+    <h2><span class="step">1</span> עיינו במסמכים</h2>
+    <div class="doclist">
+      {% for d in pkg.docs %}
+      <div class="doc"><b>{{ loop.index }}. {{ d.name }}</b>
+        <a href="/s/{{ token }}/doc/{{ loop.index0 }}" target="_blank" rel="noopener">צפייה</a></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span> פרטי החותם</h2>
+    {% for f in pkg.fields %}
+      <label for="f_{{ f.key }}">{{ f.label }}{% if f.required %} *{% endif %}</label>
+      {% if f.options %}
+      <select id="f_{{ f.key }}">
+        <option value="" disabled selected>בחרו…</option>
+        {% for o in f.options %}<option>{{ o }}</option>{% endfor %}
+      </select>
+      {% else %}
+      <input id="f_{{ f.key }}" type="{{ f.type or 'text' }}" inputmode="{{ f.inputmode or 'text' }}" autocomplete="off">
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h2><span class="step">3</span> חתמו כאן באצבע</h2>
+    <div class="sigbox">
+      <canvas id="pad"></canvas>
+      <div class="sigline"></div>
+      <div class="sighint" id="hint">ציירו את חתימתכם כאן</div>
+    </div>
+    <button type="button" class="clear" id="clear">🗑 נקו וחתמו מחדש</button>
+    <div class="consent">
+      <input type="checkbox" id="consent">
+      <span>קראתי את כל המסמכים המפורטים מעלה, אני מוסמך/ת לחתום בשם המזמין, ואני מסכים/ה
+      שחתימתי האלקטרונית תוטבע בכל מקומות החתימה במסמכים ותחייב כדין כחתימת ידי.</span>
+    </div>
+    <button class="btn" id="send">אישור וחתימה על כל המסמכים</button>
+    <div class="err" id="err"></div>
+    <div class="spin" id="spin">⏳ מטביע את החתימה במסמכים… זה לוקח כמה שניות</div>
+  </div>
+</div>
+
+<div class="card" id="done">
+  <div class="ok-icon">✓</div>
+  <h2>המסמכים נחתמו ונשלחו לפסגת ליאם</h2>
+  <p>מזהה הליך: <b id="sid"></b><br>עותקים חתומים להורדה לשמירה אצלכם:</p>
+  <div id="dls"></div>
+</div>
+
+<div class="foot">פסגת ליאם כ"א בע"מ · מערכת חתימה מאובטחת · כל חתימה מתועדת (מועד, כתובת IP ומכשיר)</div>
+</div>
+
+<script>
+const pad = document.getElementById('pad'), hint = document.getElementById('hint');
+const ctx = pad.getContext('2d');
+let drawn = false, drawing = false, last = null;
+function fit(){
+  const r = pad.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  const img = drawn ? ctx.getImageData(0,0,pad.width,pad.height) : null;
+  pad.width = r.width * d; pad.height = 190 * d;
+  ctx.scale(d,d); ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#1a2a6e';
+  if (img) ctx.putImageData(img,0,0);
+}
+fit(); addEventListener('resize', fit);
+function pos(e){ const r = pad.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+pad.addEventListener('pointerdown', e => { e.preventDefault(); pad.setPointerCapture(e.pointerId); drawing = true; last = pos(e); hint.style.display='none'; });
+pad.addEventListener('pointermove', e => {
+  if (!drawing) return; e.preventDefault();
+  const p = pos(e);
+  ctx.beginPath(); ctx.moveTo(last.x, last.y);
+  ctx.quadraticCurveTo(last.x, last.y, (p.x+last.x)/2, (p.y+last.y)/2);
+  ctx.lineTo(p.x, p.y); ctx.stroke();
+  last = p; drawn = true;
+});
+['pointerup','pointercancel'].forEach(ev => pad.addEventListener(ev, () => { drawing = false; }));
+document.getElementById('clear').onclick = () => { ctx.clearRect(0,0,pad.width,pad.height); drawn = false; hint.style.display='flex'; };
+
+const FIELDS = {{ pkg.fields | map(attribute='key') | list | tojson }};
+document.getElementById('send').onclick = async () => {
+  const err = document.getElementById('err'); err.style.display = 'none';
+  const fields = {};
+  for (const k of FIELDS) fields[k] = document.getElementById('f_' + k).value.trim();
+  if (!drawn) return showErr('חסרה חתימה — ציירו את חתימתכם בתיבה');
+  if (!document.getElementById('consent').checked) return showErr('יש לסמן את הצהרת ההסכמה');
+  const btn = document.getElementById('send'); btn.disabled = true;
+  document.getElementById('spin').style.display = 'block';
+  try {
+    const res = await fetch(location.pathname + '/submit', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fields, consent: true, signature: pad.toDataURL('image/png'),
+                            served_at: {{ served_at | tojson }}})
+    });
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.error || 'שגיאה — נסו שוב');
+    document.getElementById('flow').style.display = 'none';
+    document.getElementById('sid').textContent = j.submission_id;
+    const dls = document.getElementById('dls');
+    for (const d of j.docs) {
+      const a = document.createElement('a');
+      a.className = 'dl'; a.textContent = '⬇ ' + d.name; a.download = d.name;
+      a.href = 'data:application/pdf;base64,' + d.b64;
+      dls.appendChild(a);
+    }
+    document.getElementById('done').style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  } catch (e) { showErr(e.message); }
+  btn.disabled = false; document.getElementById('spin').style.display = 'none';
+};
+function showErr(m){ const err = document.getElementById('err'); err.textContent = m; err.style.display = 'block'; }
+</script>
+</body>
+</html>
