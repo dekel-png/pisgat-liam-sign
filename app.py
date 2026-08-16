@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_file
 import io
 
+import dash_util
 import stamp
 import telegram_util
 
@@ -142,6 +143,7 @@ def submit(token):
         "client": pkg["client"],
         "fields": fields,
         "signed_at_utc": now_utc.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "signed_at_sql": now_utc.strftime("%Y-%m-%d %H:%M:%S"),
         "signed_at_il": now_utc.astimezone(ZoneInfo("Asia/Jerusalem")).strftime("%d/%m/%Y %H:%M:%S"),
         "ip": client_ip(),
         "user_agent": request.headers.get("User-Agent", "?"),
@@ -159,15 +161,26 @@ def submit(token):
                            "signed_sha256": hashlib.sha256(signed_bytes).hexdigest()})
     audit["documents"] = doc_hashes
 
+    # file the signed set in the management dashboard (fail-open)
+    sig_buf = io.BytesIO()
+    sig_img.save(sig_buf, "PNG")
+    dash_status = dash_util.push_signed_pack(
+        pkg, audit, signed_docs, base64.b64encode(sig_buf.getvalue()).decode())
+    audit["dashboard_filed"] = dash_status
+    dash_line = {True: "📁 נקלט בתיק הלקוח בדשבורד ✓",
+                 False: "⚠️ לא נקלט בדשבורד — להעלות לתיק ידנית",
+                 None: "דשבורד: לא מוגדר"}[dash_status]
+
     # deliver to Telegram (the archive of record)
     telegram_util.send_message(
         "✍️ נחתם סט מסמכים — {client}\n"
         "חותם: {name} ({role}) · ת.ז {tz}\n"
         "מועד: {ts} · IP: {ip}\n"
-        "מזהה הליך: {sid}".format(
+        "מזהה הליך: {sid}\n{dash}".format(
             client=pkg["client"], name=fields.get("full_name", "?"),
             role=fields.get("role", "?"), tz=fields.get("id_number", "?"),
-            ts=audit["signed_at_il"], ip=audit["ip"], sid=audit["submission_id"]))
+            ts=audit["signed_at_il"], ip=audit["ip"], sid=audit["submission_id"],
+            dash=dash_line))
     delivered = all(
         telegram_util.send_document(name, bytes_) for name, bytes_ in signed_docs)
     telegram_util.send_document(
