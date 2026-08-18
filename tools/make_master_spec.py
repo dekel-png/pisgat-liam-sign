@@ -118,13 +118,28 @@ for num, (display, dash_type) in DOCS.items():
             else:
                 problems.append(f"doc{num} p{p}: header date blanks={len(line)}")
 
-    # ── 2. rate — blank with ₪ adjacent on its line ────────────────
-    for b in B:
-        if free(b) and len(b["text"]) <= 7:
-            shekels = [w for w in words if w["page"] == b["page"] and same_line(w, b)
-                       and w["text"] == "₪" and 0 <= b["x0"] - w["x1"] < 12]
-            if shekels:
-                mint.append(t_spot(b, "rate")); take(b)
+    # ── 2. doc2 v2: rate cells (2 lines ×3), housing (2 lines), payment (3) ──
+    if num == 2:
+        wide = sorted([b for b in B if free(b) and len(b["text"]) >= 70],
+                      key=lambda b: (b["page"], b["top"]))
+        if len(wide) != 5:
+            problems.append(f"doc2: wide blanks={len(wide)} (expected 5)")
+        else:
+            for b, f in zip(wide, ("housing_l1", "housing_l2",
+                                   "payment_l1", "payment_l2", "payment_l3")):
+                mint.append(t_spot(b, f)); take(b)
+        rate_b = sorted([b for b in B if free(b) and 28 <= len(b["text"]) <= 40
+                         and b["x0"] < 150],
+                        key=lambda b: (b["page"], b["top"]))
+        if len(rate_b) != 6:
+            problems.append(f"doc2: rate blanks={len(rate_b)} (expected 6)")
+        else:
+            for i in range(0, 6, 2):
+                l1, l2 = rate_b[i], rate_b[i + 1]
+                if l2["top"] - l1["top"] > 20:
+                    problems.append(f"doc2: rate pair {i//2} not adjacent")
+                mint.append(t_spot(l1, "rate_l1")); take(l1)
+                mint.append(t_spot(l2, "rate_l2")); take(l2)
 
     # ── 3. hebrew date words (skip שנחתם header + promissory לשלם) ─
     for rev_label, field in (("םויב", "date_day"), ("םוי", "date_day"),
@@ -181,6 +196,20 @@ for num, (display, dash_type) in DOCS.items():
             problems.append("doc1: מטעמו anchor missing")
 
     if num == 4:
+        # v2: note-sum blanks (digits + words) — optional mint fields; empty = open
+        # note. The words blank can wrap to the line BELOW "במילים:", so the
+        # search window extends a line down from the label.
+        bl_labels = [w for w in words if "םילימב" in w["text"]]
+        for lab in bl_labels[:1]:
+            for b in list(B):
+                if not free(b) or b["page"] != lab["page"]:
+                    continue
+                if not (-3 <= b["top"] - lab["top"] <= 22):
+                    continue
+                if len(b["text"]) >= 20:
+                    mint.append(t_spot(b, "note_sum_words", size=8)); take(b)
+                elif 10 <= len(b["text"]) <= 18 and same_line(b, lab):
+                    mint.append(t_spot(b, "note_sum")); take(b)
         # part A table (p1): labels on the right, value band to the left
         for rev_label, field in (("אלמ", "full_name"), (".ז.ת", "id_number"),
                                  ("תבותכ", "company_address"), ("ןופלט", "phone"),
@@ -309,11 +338,14 @@ spec = {
 # expected-count sanity per doc
 EXPECT = {1: {"client_name": 1, "client_hp": 1, "emails": 1, "phones": 1,
               "date_day": 1, "date_month_he": 1, "date_year": 1},
-          2: {"client_name": 1, "client_hp": 1, "rate": 3,
+          2: {"client_name": 1, "client_hp": 1, "rate_l1": 3, "rate_l2": 3,
+              "housing_l1": 1, "housing_l2": 1,
+              "payment_l1": 1, "payment_l2": 1, "payment_l3": 1,
               "date_dd": 1, "date_mm": 1, "date_yyyy": 1},
           3: {"client_name": 1, "client_hp": 1, "date_dd": 1, "date_mm": 1, "date_yyyy": 1},
           4: {"client_name": 4, "client_hp": 4, "date_dd": 1, "date_mm": 1, "date_yyyy": 1,
-              "date_day": 1, "date_month_he": 1, "date_year": 1, "date_full": 1}}
+              "date_day": 1, "date_month_he": 1, "date_year": 1, "date_full": 1,
+              "note_sum": 1, "note_sum_words": 1}}
 for num, doc in zip(DOCS, spec_docs):
     got = {}
     for m in doc["mint_spots"]:

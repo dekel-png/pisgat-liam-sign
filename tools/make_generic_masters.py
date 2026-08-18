@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
-"""One-time: build GENERIC master DOCX set (all client data = blank lines) from
-the volume template. These masters let the dashboard mint a client-specific,
+"""Build GENERIC master DOCX set (all client data = blank lines) from the
+volume template. These masters let the dashboard mint a client-specific,
 overlay-stamped set on Linux (no Word needed) — the manager self-service flow.
 
-Blanks minted later by the server: client name, ח.פ, rate, date, emails, phone.
+v2 (18/08): commercial terms are now PER-CLIENT mint fields, not baked text —
+  * rate cells = 2 blank lines each (supports tiered rates as free text)
+  * Annex A §1 housing = 2 blank lines (company-provided or client-provided)
+  * Annex A §6 payment terms = 3 blank lines (any schedule the manager types)
+  * framework agreement §7.2 defers the payment schedule to Annex A
+  * framework title/price-basis are housing-neutral
+  * doc 4 note sum blanks become optional mint fields (empty = open note)
+
+Blanks minted by the server: client name, ח.פ, rate text, housing, payment,
+note sum, date, emails, phone.
 Run locally, convert to PDF with Word, then measure anchors (make_master_spec.py).
 """
 import io
@@ -21,9 +30,11 @@ T_NAME = "נדב וולינץ"
 T_TZ = "037969201"
 NAME_B = "______________________________"   # client name blank (wide)
 HP_B = "___________"
-RATE_B = "_____"
 BLANK = "____________________"
 NBLANK = "______________"
+WIDE = "_" * 80                              # full-width overlay line (§1/§6 bodies)
+RATE_LINE = "_" * 33                         # rate-cell overlay line (fits one cell row)
+BR = '</w:t><w:br/><w:t xml:space="preserve">'
 
 PARA = ('<w:p><w:pPr><w:bidi/><w:spacing w:after="30" w:before="40" w:line="276"/>'
         '<w:ind w:start="400"/><w:jc w:val="right"/></w:pPr><w:r><w:rPr>'
@@ -68,6 +79,21 @@ for num, base in FILES.items():
     xml = rep(xml, T_HP, HP_B, {1: 1, 2: 1, 3: 1, 4: 4}[num], f"doc{num} hp")
 
     if num == 1:
+        # v2: מועדי התשלום הם פר-לקוח — ההסכם מפנה לנספח א' במקום לקבוע יום
+        xml = rep(xml,
+                  "עד ולא יאוחר מיום החמישי (5) לכל חודש קלנדרי, ישולם לחברה התשלום "
+                  "בגין השירותים שסופקו בחודש הקודם,",
+                  "התשלום בגין השירותים שסופקו בחודש הקודם ישולם לחברה במועדים "
+                  "ובתנאים הקבועים בנספח א' (תנאים מסחריים),", 1, "doc1 pay via annex")
+        # v2: כותרת ניטרלית — המגורים נקבעים בנספח א' פר לקוח
+        xml = rep(xml, "– כולל מגורים –",
+                  "– על פי התנאים המסחריים שבנספח א' –", 1, "doc1 title neutral")
+        # v2: רכיב המגורים בבסיס התמורה (7.6) מותנה בכך שהוא חל על החברה
+        xml = rep(xml, "העמדת מגורים הולמים, ",
+                  "העמדת מגורים הולמים (ככל שחלה על החברה), ", 1, "doc1 basis housing")
+        # בטוחות: שטר חוב בלבד, בלי שיק (הוראת דקל 16/08)
+        xml = rep(xml, "על כתב ערבות ועל שיק או שטר חוב אישי",
+                  "על כתב ערבות ועל שטר חוב אישי", 1, "doc1 no cheque")
         xml = rep(xml, "ביום 2 בחודש אוגוסט שנת 2026",
                   "ביום ____ בחודש __________ שנת ______", 1, "doc1 date")
         xml = rep(xml, f"מטעמו: {T_NAME} ת.ז. {T_TZ},",
@@ -82,10 +108,24 @@ for num, base in FILES.items():
                + xml[i + len(anchor):])
 
     if num == 2:
+        # v2: כל גוף סעיף 1 (מגורים) = שתי שורות הטבעה
+        xml = rep(xml,
+                  "החברה תדאג לספק לעובדים הזרים, על חשבונה, מגורים הולמים, בהתאם "
+                  "למחויבותה והכל בכפוף ובהתאם להוראות הנוהל. ככל והמזמין יסיים את "
+                  "ההתקשרות בנוגע לעובד/ים, ישלם את ההתחייבות החוזית שיש לחברה כלפי "
+                  "המשכיר של מגורי העובד/ים.",
+                  WIDE + BR + WIDE, 1, "doc2 housing lines")
+        # v2: כל גוף סעיף 6 (תנאי תשלום) = שלוש שורות הטבעה
+        xml = rep(xml,
+                  "חשבון עד ה־2 בכל חודש קלנדרי עבור החודש הקודם; תשלום עד ה־5 בחודש, "
+                  'בהעברה בנקאית, בתוספת מע"מ, והכל בהתאם לסעיפים 7.1–7.2 להסכם.',
+                  WIDE + BR + WIDE + BR + WIDE, 1, "doc2 payment lines")
         xml = rep_re(xml, r"02\s*/\s*08\s*/\s*2026", "___ / ___ / ______", 1, "doc2 date")
+        # v2: תאי תעריף = שתי שורות הטבעה (תומך תעריף מדורג כטקסט חופשי)
         xml = rep(xml, "80 ₪ לשעה בחודש הראשון להתקשרות; 85 ₪ לשעה החל מהחודש השני ואילך",
-                  f"{RATE_B} ₪ לשעה", 1, "doc2 price main")
-        xml = rep_re(xml, r"(<w:t[^>]*>)—(</w:t>)", rf"\g<1>{RATE_B} ₪ לשעה\g<2>", 2, "doc2 dashes")
+                  RATE_LINE + BR + RATE_LINE, 1, "doc2 price main")
+        xml = rep_re(xml, r"(<w:t[^>]*>)—(</w:t>)",
+                     rf"\g<1>{RATE_LINE}{BR}{RATE_LINE}\g<2>", 2, "doc2 dashes")
 
     if num == 3:
         xml = rep(xml, "<w:t>5</w:t>", '<w:t xml:space="preserve"> </w:t>', 1, "doc3 qty")
