@@ -128,18 +128,20 @@ for num, (display, dash_type) in DOCS.items():
             for b, f in zip(wide, ("housing_l1", "housing_l2",
                                    "payment_l1", "payment_l2", "payment_l3")):
                 mint.append(t_spot(b, f)); take(b)
+        # שורות הטבלה לפי סדר המאסטר: תאילנד, אוזבקיסטן, סרי לנקה — כל
+        # מדינה מקבלת שדה תעריף משלה (rate_th / rate_uz / rate_lk)
         rate_b = sorted([b for b in B if free(b) and 28 <= len(b["text"]) <= 40
                          and b["x0"] < 150],
                         key=lambda b: (b["page"], b["top"]))
         if len(rate_b) != 6:
             problems.append(f"doc2: rate blanks={len(rate_b)} (expected 6)")
         else:
-            for i in range(0, 6, 2):
+            for i, origin in zip(range(0, 6, 2), ("th", "uz", "lk")):
                 l1, l2 = rate_b[i], rate_b[i + 1]
                 if l2["top"] - l1["top"] > 20:
-                    problems.append(f"doc2: rate pair {i//2} not adjacent")
-                mint.append(t_spot(l1, "rate_l1")); take(l1)
-                mint.append(t_spot(l2, "rate_l2")); take(l2)
+                    problems.append(f"doc2: rate pair {origin} not adjacent")
+                mint.append(t_spot(l1, f"rate_{origin}_l1")); take(l1)
+                mint.append(t_spot(l2, f"rate_{origin}_l2")); take(l2)
 
     # ── 3. hebrew date words (skip שנחתם header + promissory לשלם) ─
     for rev_label, field in (("םויב", "date_day"), ("םוי", "date_day"),
@@ -338,7 +340,9 @@ spec = {
 # expected-count sanity per doc
 EXPECT = {1: {"client_name": 1, "client_hp": 1, "emails": 1, "phones": 1,
               "date_day": 1, "date_month_he": 1, "date_year": 1},
-          2: {"client_name": 1, "client_hp": 1, "rate_l1": 3, "rate_l2": 3,
+          2: {"client_name": 1, "client_hp": 1,
+              "rate_th_l1": 1, "rate_th_l2": 1, "rate_uz_l1": 1, "rate_uz_l2": 1,
+              "rate_lk_l1": 1, "rate_lk_l2": 1,
               "housing_l1": 1, "housing_l2": 1,
               "payment_l1": 1, "payment_l2": 1, "payment_l3": 1,
               "date_dd": 1, "date_mm": 1, "date_yyyy": 1},
