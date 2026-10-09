@@ -9,7 +9,9 @@ import sys
 
 import pdfplumber
 
-TOKEN = "slh-4u2UNZO8L8aSozgzLT_hdDkz"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+TOKEN = __import__("_tokens").token_for("salhov")
 SET_DIR = r"C:\Users\PC\OneDrive\Desktop\my-aios\outputs\documents\2026-08-16-salhov-signing-set"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PKG_DIR = os.path.join(REPO, "packages", TOKEN)
@@ -20,6 +22,8 @@ FILES = {
     3: ("3 - נספח ב - טופס הזמנת עובדים - מאיר סלהוב אינסטלציה.pdf", "3 - נספח ב - טופס הזמנת עובדים"),
     4: ("4 - ערבויות ובטוחות - מאיר סלהוב אינסטלציה.pdf", "4 - ערבויות ובטוחות"),
 }
+DASH_TYPES = {1: "הסכם מסגרת", 2: "נספח א — תנאים מסחריים",
+              3: "נספח ב — טופס הזמנת עובדים", 4: "ערבויות ובטוחות"}
 
 def words_of(path):
     out = []
@@ -136,7 +140,8 @@ for num, (fname, display) in FILES.items():
                       "field": "company_address", "size": 7})
         spots.append({"type": "sig", "page": 2, "x0": 440.5, "x1": 501.5, "bottom": 541.8, "h": 18})
 
-    docs_spec.append({"file": f"{num}.pdf", "name": display, "spots": spots})
+    docs_spec.append({"file": f"{num}.pdf", "name": display,
+                      "dash_doc_type": DASH_TYPES[num], "spots": spots})
     print(f"doc{num}: {len(spots)} spots ({n_pages} pages)")
 
 package = {

@@ -12,7 +12,9 @@ import sys
 
 import pdfplumber
 
-TOKEN = "ahk-dl4NHg_zkCrGt2bwxQY8zIHS"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+TOKEN = __import__("_tokens").token_for("ahrak")
 SET_DIR = r"C:\Users\PC\OneDrive\Desktop\my-aios\outputs\documents\2026-08-17-ahrak-signing-set"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PKG_DIR = os.path.join(REPO, "packages", TOKEN)

@@ -12,7 +12,9 @@ import sys
 
 import pdfplumber
 
-TOKEN = "tls-8LGTwS3wNBCZupWbWA-G68_M"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+TOKEN = __import__("_tokens").token_for("tlas")
 SET_DIR = r"C:\Users\PC\OneDrive\Desktop\my-aios\outputs\documents\2026-08-16-tlas-signing-set"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PKG_DIR = os.path.join(REPO, "packages", TOKEN)
