@@ -31,3 +31,7 @@ python app.py   # http://127.0.0.1:5511/s/<token>
 ## מגבלות ידועות (v1)
 - אין OTP למייל — הזיהוי נשען על מסירת הלינק לנמען ידוע + תיעוד IP/מכשיר/זמן.
 - Free tier ב-Render נרדם באי-פעילות — קליק ראשון עשוי לקחת ~30-60 שניות.
+
+## סודות (מ-11/10/2026)
+
+`PACKAGES_KEY` (מפתח ההצפנה של `packages.enc`) לא נשמר בריפו. מקומית: `%LOCALAPPDATA%\my-aios\secrets\pisgat-liam-sign.env`, ובשרת: משתנה סביבה ב-Render. `tools/pack_packages.py` קורא משם, ונכשל אם המפתח חסר (סיבוב מכוון: `--new-key`).
