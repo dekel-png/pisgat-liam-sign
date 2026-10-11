@@ -1,5 +1,5 @@
-﻿flask>=3.0
-gunicorn>=21.0
+flask>=3.0
+gunicorn>=26.2.0
 pypdf>=4.0
 reportlab>=4.0
 python-bidi>=0.4
