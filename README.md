@@ -34,4 +34,4 @@ python app.py   # http://127.0.0.1:5511/s/<token>
 
 ## סודות (מ-11/10/2026)
 
-`PACKAGES_KEY` (מפתח ההצפנה של `packages.enc`) לא נשמר בריפו. מקומית: `%LOCALAPPDATA%\my-aios\secrets\pisgat-liam-sign.env`, ובשרת: משתנה סביבה ב-Render. `tools/pack_packages.py` קורא משם, ונכשל אם המפתח חסר (סיבוב מכוון: `--new-key`).
+`PACKAGES_KEY` (מפתח ההצפנה של `packages.enc`) לא נשמר בריפו. מקומית: `%LOCALAPPDATA%\my-aios\secrets\pisgat-liam-sign.env`, ובשרת: משתנה סביבה ב-Render. `tools/pack_packages.py` קורא משם, ונכשל אם המפתח חסר (סיבוב מכוון: `--new-key`). טוקני לינקי החתימה: `%LOCALAPPDATA%\my-aios\secrets\pisgat-liam-sign.tokens.json` (`tools/_tokens.py`; עקיפה: `PISGAT_SIGN_TOKENS_FILE`).
