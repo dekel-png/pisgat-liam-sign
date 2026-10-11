@@ -34,7 +34,7 @@ jobs:
         run: python tests/smoke_test.py
       - name: Open issue when red on main
         if: failure() && github.event_name == 'push'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const open = await github.rest.issues.listForRepo({
