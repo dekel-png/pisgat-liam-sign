@@ -1,0 +1,15 @@
+# Historical findings triaged 11/10/2026 (gitleaks 8.30.1, full history).
+# Anything new that gitleaks finds is a real alarm - rotate first, then clean up.
+#
+# The three signing-link tokens below WERE real (a token is the only credential
+# of /s/<token>). They were rotated on 09/10/2026 (commit 557fe20): none of the
+# three is anywhere in the current tree (tokens now live only in the gitignored
+# .tokens.json via tools/_tokens.py), and on 11/10/2026 each old token was
+# requested from production and returned 404. They stay in public history, but
+# they open nothing.
+6bb381768163e82c20e8301f6167acbaf0e8495f:tools/build_ahrak_package.py:generic-api-key:15
+7b909a8fee1c8852bea94c8dbddabc57a61f8c52:tools/build_tlas_package.py:generic-api-key:15
+70d6abba5483ad7ca0dd5897a22e52ef0c70bd39:tools/build_salhov_package.py:generic-api-key:12
+# Ciphertext false positive (see .gitleaks.toml): a "github-pat"-shaped run
+# inside the Fernet blob - verified the file is 100% urlsafe-base64 ciphertext.
+557fe20c0ef42eb59cf941d2fac43ef763a779d0:packages.enc:github-pat:1

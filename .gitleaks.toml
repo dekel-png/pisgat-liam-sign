@@ -1,0 +1,12 @@
+# gitleaks config - extends the default ruleset.
+# packages.enc is a Fernet token (urlsafe-base64 ciphertext of the signing
+# packages, decrypted at boot with PACKAGES_KEY). Random ciphertext matches
+# token-shaped rules by pure chance (a "ghp_..." run was found at byte 450,425
+# of the 09/10/2026 blob), and every re-pack can produce a new one - scanning
+# ciphertext for secrets is meaningless, so the path is allowlisted.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Encrypted package bundle (ciphertext, not secrets)"
+paths = ['''(^|/)packages\.enc$''']
